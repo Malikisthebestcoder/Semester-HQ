@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Semester HQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07080d;--tx:#eceef6;--mu:#8e94ab;--gl:rgba(255,255,255,.055);--ln:rgba(255,255,255,.1);--a:#8b7cff;--b:#38e1c6;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-theme="light"]{--bg:#eceef7;--tx:#15172b;--mu:#5c627d;--gl:rgba(255,255,255,.7);--ln:rgba(20,22,43,.12);color-scheme:light}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:400 17px/1.55 "Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif}
+.bg{position:fixed;inset:0;z-index:-1;background:radial-gradient(620px 420px at 10% 0,rgba(139,124,255,.3),transparent 60%),radial-gradient(520px 440px at 96% 35%,rgba(56,225,198,.16),transparent 60%),radial-gradient(520px 420px at 35% 100%,rgba(255,143,112,.12),transparent 60%)}
+.wrap{max-width:880px;margin:0 auto;padding:18px 16px 120px}
+header{display:flex;justify-content:space-between;align-items:center}
+.brand{font-weight:800;font-size:19px;letter-spacing:-.02em}
+.pill{display:inline-block;padding:4px 12px;border-radius:99px;background:rgba(139,124,255,.2);color:var(--tx);font-size:14px;font-weight:600;font-family:inherit;border:0;cursor:pointer}
+.own{background:linear-gradient(135deg,var(--a),var(--b));color:#07080d}
+h1{font-size:clamp(30px,6vw,44px);line-height:1.05;margin:26px 0 6px;letter-spacing:-.03em;font-weight:800}
+h2{font-size:17px;margin:28px 0 12px;font-weight:600}
+p{margin:0;color:var(--mu)}
+.card{background:var(--gl);border:1px solid var(--ln);border-radius:26px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:20px;box-shadow:0 10px 40px rgba(0,0,0,.22)}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.cls{display:flex;gap:14px;align-items:center;text-align:left;color:inherit;font:inherit;cursor:pointer}
+.cls:hover,.chip:hover{border-color:var(--a)}
+.cls b,.cls small{display:block}
+small{color:var(--mu);font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+.stats b{display:block;font-size:28px;font-weight:800;letter-spacing:-.03em}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--ln)}
+.row:last-child{border:0}
+.view{display:none}.view.on{display:block}
+nav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(460px,100%);display:flex;justify-content:space-around;padding:10px 10px calc(10px + env(safe-area-inset-bottom,0px));background:var(--gl);border:1px solid var(--ln);border-radius:24px 24px 0 0;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+nav a{color:var(--mu);text-decoration:none;font-size:13px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 16px;border-radius:16px}
+nav a.on{color:var(--tx);background:rgba(139,124,255,.22)}
+nav svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--b);outline-offset:2px}
+.arc{transition:stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin:14px 0}
+.chip{white-space:nowrap;padding:12px 18px;border-radius:99px;background:var(--gl);border:1px solid var(--ln);color:var(--tx);font-size:15px;font-weight:600;font-family:inherit;cursor:pointer}
+.chip.on{background:var(--a);border-color:var(--a);color:#07080d}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bars{display:flex;align-items:flex-end;gap:10px;height:130px;margin-top:14px}
+.bars div{flex:1;text-align:center;font-size:12.5px;color:var(--mu);display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.bar{display:block;border-radius:10px 10px 4px 4px;background:linear-gradient(var(--a),rgba(139,124,255,.25));margin-bottom:6px;transform-origin:bottom;animation:grow .7s both}
+@keyframes grow{from{transform:scaleY(0)}}
+.hb{height:8px;border-radius:9px;background:var(--ln);margin-top:6px;overflow:hidden}.hb i{display:block;height:100%;background:linear-gradient(90deg,var(--a),var(--b))}
+input[type=range]{width:100%;accent-color:var(--a)}
+select{width:100%;padding:10px 12px;border-radius:14px;background:var(--gl);color:var(--tx);border:1px solid var(--ln);font:inherit}
+label{display:block;margin:16px 0 6px;font-weight:600}
+.big{font-size:clamp(54px,14vw,84px);font-weight:800;letter-spacing:-.05em;line-height:1}
+.hero{display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+.sw{width:46px;height:26px;border-radius:99px;background:var(--ln);position:relative;border:0;cursor:pointer;flex:none}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s}
+.sw[aria-checked=true]{background:var(--a)}.sw[aria-checked=true]::after{left:23px}
+.av{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--a),var(--b));display:grid;place-items:center;font-weight:800;color:#07080d;flex:none}
+.who{display:flex;gap:12px;align-items:center}
+.task{display:flex;gap:14px;align-items:center;padding:14px 0;margin:0;border-bottom:1px solid var(--ln);cursor:pointer}.task:last-child{border:0}
+.task input{width:26px;height:26px;accent-color:var(--b);flex:none}
+.task input:checked+span{opacity:.5;text-decoration:line-through}
+.streak{background:linear-gradient(135deg,rgba(139,124,255,.3),rgba(56,225,198,.2))}
+.sw:disabled{opacity:.6;cursor:default}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+button,input,select{font-family:inherit}
+input[type=text],input[type=email],input[type=password],input[type=number]{width:100%;padding:12px 14px;border-radius:14px;background:var(--gl);color:var(--tx);border:1px solid var(--ln);font-size:16px}
+.btn{padding:12px 22px;border-radius:99px;border:0;background:linear-gradient(135deg,var(--a),var(--b));color:#07080d;font-size:16px;font-weight:700;cursor:pointer}
+.btn.alt{background:var(--gl);color:var(--tx);border:1px solid var(--ln)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.auth{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:20px;background:var(--bg);overflow:auto}
+.auth .card{width:min(420px,100%)}
+.live-only{display:none}.live .live-only{display:block}.live #so{display:inline-block}
+.live .demo{display:none}
+.free .prem{display:none}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+</head>
+<body>
+<div class="bg"></div>
+<div class="auth" id="auth"><form class="card" id="af">
+<h1 style="margin-top:0">Semester HQ</h1><p>Sign in or make an account.</p>
+<label for="em">Email</label><input id="em" type="email" autocomplete="email" required>
+<label for="pw">Password (8+ characters)</label><input id="pw" type="password" minlength="8" autocomplete="current-password" required>
+<label for="scode">School code (new accounts)</label><input id="scode" type="text" autocomplete="off">
+<label style="display:flex;gap:10px;align-items:center;font-weight:400"><input id="u13" type="checkbox" style="width:22px;height:22px;flex:none"> I am under 13</label>
+<p id="pbox" style="display:none">A parent or guardian has to give permission first. Your teacher will approve your account.</p>
+<p id="am" style="margin:14px 0;color:var(--tx)"></p>
+<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" value="in">Sign in</button><button class="btn alt" value="up">Create account</button></div>
+<button class="pill" id="dm" type="button" style="margin-top:16px">Look around with sample data</button>
+</form></div>
+<svg style="position:absolute;width:0;height:0" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b7cff"/><stop offset="1" stop-color="#38e1c6"/></linearGradient></defs></svg>
+<div class="wrap">
+<header><div class="brand">Semester HQ</div><div><span class="pill own demo" id="own">Owner</span> <button class="pill" id="th" type="button">Light mode</button> <button class="pill live-only" id="so" type="button">Sign out</button></div></header>
+
+<section class="view" id="v-dashboard">
+<h1 id="hey">Hey Alex, here’s your day</h1>
+<p id="sub">Grades from Home Access Center and assignments from Google Classroom updated 2 minutes ago.</p>
+<div class="stats demo">
+<div class="card streak"><b>5 days</b><small>Turning work in on time</small></div>
+<div class="card"><b>4</b><small>Things due this week</small></div>
+<div class="card"><b>2</b><small>Goals reached</small></div>
+</div>
+<h2>Do this first</h2>
+<div class="card" id="plan"></div>
+<h2 class="demo">Your goal</h2>
+<div class="card demo"><div class="row" style="padding:0;border:0"><b>Get Science to a B</b><span class="pill">3 points to go</span></div><div class="hb"><i style="width:80%"></i></div><p style="margin-top:10px">Do well on Thursday’s test and you’re there.</p></div>
+<h2>Your classes</h2>
+<div class="grid" id="grades"></div>
+<form class="card live-only" id="addc" style="margin-top:14px"><b>Add a class</b>
+<label for="cn">Class name</label><input id="cn" name="cn" type="text" maxlength="60" required>
+<div class="two"><div><label for="cp">Period</label><input id="cp" name="cp" type="number" min="0" max="12" required></div><div></div>
+<div><label for="ce">Points earned</label><input id="ce" name="ce" type="number" min="0" step="any" required></div>
+<div><label for="ct">Points possible</label><input id="ct" name="ct" type="number" min="1" step="any" required></div></div>
+<button class="btn" style="margin-top:16px">Add class</button></form>
+<div class="card live-only" id="up" style="margin-top:14px"><b>Go Premium</b><p>Unlock the full grade chart and other periods.</p><button class="btn" id="gp" type="button" style="margin-top:12px">Upgrade</button></div>
+<h2>Due this week</h2>
+<div class="card" id="due"></div>
+<h2 class="demo">Your parent link</h2>
+<div class="card demo"><div class="row" style="padding:0;border:0"><span><b>Ms. Rivera is connected</b><small>Gets a weekly summary and reminders.</small></span><span class="pill">Approved</span></div></div>
+</section>
+
+<section class="view" id="v-classes">
+<h1>How your class is doing</h1>
+<p>See how you compare with the other students in your class. Nobody’s name is ever shown.</p>
+<div class="chips" id="chips"></div>
+<div class="card live-only" style="margin-bottom:14px"><div class="row" style="padding:0;border:0"><div><b>Count my grades in class averages</b><small>Anonymous. Turn this on to see averages (5+ students needed).</small></div><button class="sw" id="shr" role="switch" aria-checked="false" aria-label="Count my grades in class averages" type="button"></button></div></div>
+<div id="cdetail"></div>
+</section>
+
+<section class="view" id="v-predictor">
+<h1>What-if calculator</h1>
+<p>Try a score and see what happens to your grade. It’s only a guess, nothing is saved.</p>
+<div class="card" style="margin-top:18px">
+<label for="pc" style="margin-top:0">Class</label><select id="pc"></select>
+<label for="sc">If I score this on the test: <span id="scv">85</span>%</label><input id="sc" type="range" min="0" max="100" value="85">
+<label for="wt">Test is worth: <span id="wtv">100</span> points</label><input id="wt" type="range" min="20" max="200" step="10" value="100">
+</div>
+<div class="card hero" style="margin-top:14px">
+<div id="pring"></div>
+<div><p>Your grade would be</p><div class="big" id="pred">0%</div><p id="pdelta"></p></div>
+</div>
+<div class="card" style="margin-top:14px">
+<label for="tg" style="margin-top:0">My goal for this class</label>
+<select id="tg"><option value="80">80% (B-)</option><option value="85" selected>85% (B)</option><option value="90">90% (A-)</option><option value="93">93% (A)</option></select>
+<p id="need" style="margin-top:12px;color:var(--tx)"></p>
+</div>
+</section>
+
+<section class="view" id="v-owner"><h1>Owner</h1><p>Counts only. You never see students’ grades here.</p><div class="stats" id="ost"></div><h2>Waiting for parent approval</h2><div class="card" id="opend"></div></section>
+<section class="view" id="v-friends">
+<h1>Classmates</h1>
+<p>Kids at Lincoln Middle who are in your classes.</p>
+<div class="card" style="margin-top:18px">
+<div class="row"><div><b>Share my grades with friends</b><small>Off by default. You can turn it off anytime.</small></div><button class="sw" id="share" role="switch" aria-checked="false" aria-label="Share my grades with friends" type="button"></button></div>
+<div class="row"><div><b>New friends need parent approval</b><small>Required for students under 13.</small></div><button class="sw" role="switch" aria-checked="true" aria-label="New friends need parent approval, required" type="button" disabled></button></div>
+<div class="row"><div><b>Who can see my schedule</b><small>Classes and periods</small></div><select id="vis" style="width:auto"><option>Friends only</option><option>Same class</option><option>Only me</option></select></div>
+</div>
+<h2>In your classes</h2>
+<div class="card" id="fr"></div>
+</section>
+</div>
+
+<nav>
+<a href="#dashboard"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>Home</a>
+<a href="#classes"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Averages</a>
+<a href="#predictor"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Predict</a>
+<a href="#friends"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.3-5 6.5-5s5.700 1.500 6.500 5M16 4.500a3.500 3.500 0 0 1 0 7M18 15c2 .6 3.200 2.200 3.500 5"/></svg>Friends</a>
+</nav>
+
+<script>
+const C=[
+{id:"chem",name:"Science",per:3,e:400,t:500,avg:78,n:14,dist:[2,4,5,2,1],oth:[["Period 3",78],["Period 5",74],["Period 6",81]]},
+{id:"alg",name:"Math",per:1,e:352,t:400,avg:84,n:22,dist:[6,9,5,2,0],oth:[["Period 1",84],["Period 2",80]]},
+{id:"eng",name:"English 7",per:2,e:276,t:300,avg:86,n:18,dist:[7,7,3,1,0],oth:[["Period 2",86],["Period 4",83],["Period 7",88]]},
+{id:"hist",name:"Social Studies",per:5,e:228,t:300,avg:79,n:9,dist:[1,3,3,2,0],oth:[["Period 5",79],["Period 6",75]]},
+{id:"bio",name:"Life Science",per:4,e:455,t:500,avg:82,n:3,dist:[0,0,0,0,0],oth:[["Period 4",82]]}
+];
+const D=[["Science unit test","Science","Thursday","100 pts"],["Math quiz","Math","Wednesday","40 pts"],["Social Studies essay draft","Social Studies","Friday","50 pts"],["Life Science lab report","Life Science","Friday","60 pts"]];
+const F=[["Maya R.","Grade 7",["Science (Period 3)","English 7 (Period 2)"],"A-"],["Jordan T.","Grade 7",["Math (Period 1)"],"B+"],["Priya S.","Grade 7",["Social Studies (Period 5)","Life Science (Period 4)"],"B"]];
+let sel="chem";
+const $=s=>document.querySelector(s);
+const letter=p=>{if(p<60)return"F";const l="DCBA"[Math.min(3,Math.floor(p/10)-6)],r=p%10;return l+(p>=100?"":r>=7?"+":r<3?"-":"")};
+const pc=c=>c.e/c.t*100;
+function ring(p,s,w,id){const r=(s-w)/2,c=2*Math.PI*r,m=s/2;return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" role="img" aria-label="${p.toFixed(0)} percent"><circle cx="${m}" cy="${m}" r="${r}" fill="none" stroke="var(--ln)" stroke-width="${w}"/><circle class="arc" ${id?`id="${id}"`:""} cx="${m}" cy="${m}" r="${r}" fill="none" stroke="url(#g)" stroke-width="${w}" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c}" data-c="${c}" data-p="${p}" transform="rotate(-90 ${m} ${m})"/></svg>`}
+function sweep(root){requestAnimationFrame(()=>requestAnimationFrame(()=>root.querySelectorAll(".arc").forEach(a=>{a.style.strokeDashoffset=a.dataset.c*(1-Math.min(100,a.dataset.p)/100)})))}
+function dash(){const g=$("#grades");g.innerHTML=C.map(c=>`<button class="card cls" type="button" data-id="${c.id}">${ring(pc(c),68,7)}<span><b>${c.name}</b><small>Period ${c.per}</small><b style="margin-top:4px">${pc(c).toFixed(1)}% ${letter(pc(c))}</b></span></button>`).join("");
+g.querySelectorAll(".cls").forEach(b=>b.onclick=()=>{sel=b.dataset.id;location.hash="classes"});
+$("#plan").innerHTML=(D.length?D.slice(0,3).map(d=>d[0]):["Add your classes to get started"]).map(t=>`<label class="task"><input type="checkbox"><span>${t}</span></label>`).join("");
+$("#due").innerHTML=D.map(d=>`<div class="row"><span><b>${d[0]}</b><small>${d[1]}, ${d[2]}, from Google Classroom</small></span><span class="pill">${d[3]}</span></div>`).join("");sweep(g)}
+function classes(){$("#chips").innerHTML=C.map(c=>`<button class="chip${c.id===sel?" on":""}" type="button" data-id="${c.id}">${c.name}</button>`).join("");
+$("#chips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{sel=b.dataset.id;classes()});
+const c=C.find(x=>x.id===sel),box=$("#cdetail");if(!c){box.innerHTML=`<div class="card"><b>No classes yet</b><p>Add a class on the Home screen first.</p></div>`;return}if(sb&&document.body.classList.contains("live")&&!c.got){c.got=true;sb.rpc("class_stats",{p_class:c.id}).then(({data})=>{const s=data&&data[0];if(s){c.n=s.n;c.avg=+s.mean;c.dist=[s.a,s.b,s.c,s.d,s.f]}classes()})}const me=pc(c);
+if(c.n<5){box.innerHTML=`<div class="card"><b>Not enough students yet</b><p>Averages appear once 5 students in ${c.name} share their grades. Right now ${c.n} have.</p></div>`;return}
+const mx=Math.max(...c.dist),diff=me-c.avg;
+box.innerHTML=`<div class="cmp"><div class="card"><p>Your grade</p><div class="big" style="font-size:44px">${me.toFixed(1)}%</div></div><div class="card"><p>Class average</p><div class="big" style="font-size:44px">${c.avg}%</div></div></div>
+<div class="card" style="margin-top:12px"><b>${diff>=0?`You’re ${diff.toFixed(1)} points above the class average. Nice work!`:`You’re ${Math.abs(diff).toFixed(1)} points below the average. You can close that gap.`}</b><p>Based on ${c.n} students. Names are never shown.</p><div class="bars prem">${c.dist.map((n,i)=>`<div><span class="bar" style="height:${n/mx*100}%"></span>${"ABCDF"[i]}</div>`).join("")}</div></div>
+<div class="card prem" style="margin-top:12px"><b>Other periods</b>${c.oth.map(o=>`<div style="margin-top:12px"><div class="row" style="padding:0;border:0"><span>${o[0]}</span><b>${o[1]}%</b></div><div class="hb"><i style="width:${o[1]}%"></i></div></div>`).join("")}</div>`}
+function predict(){const c=C.find(x=>x.id===$("#pc").value);if(!c){$("#pred").textContent="Add a class first";$("#pdelta").textContent="";$("#need").textContent="";return}const W=+$("#wt").value,S=+$("#sc").value/100*W,now=pc(c),p=(c.e+S)/(c.t+W)*100,d=p-now,tg=+$("#tg").value;
+$("#scv").textContent=$("#sc").value;$("#wtv").textContent=W;$("#pred").textContent=p.toFixed(1)+"%";
+$("#pdelta").textContent=`That’s a ${letter(p)}, ${d>=0?"up":"down"} ${Math.abs(d).toFixed(1)} points from ${now.toFixed(1)}%`;
+const a=$("#pring .arc");a.dataset.p=p;a.style.strokeDashoffset=a.dataset.c*(1-Math.min(100,p)/100);
+const need=(tg/100*(c.t+W)-c.e)/W*100;
+$("#need").textContent=need>100?`Even a perfect score only gets you to ${((c.e+W)/(c.t+W)*100).toFixed(1)}%.`:need<=0?`You already have ${tg}% locked in, whatever you score.`:`To reach ${tg}%, score at least ${Math.ceil(need)}% on this test. You can do it!`}
+function friends(){const on=$("#share").getAttribute("aria-checked")==="true";$("#fr").innerHTML=F.map(f=>`<div class="row"><div class="who"><div class="av">${f[0][0]}</div><span><b>${f[0]}</b><small>${f[2].join(", ")}</small></span></div><span class="pill">${on?f[3]:"Grade hidden"}</span></div>`).join("")}
+function route(){const v=location.hash.slice(1),ok=["dashboard","classes","predictor","friends","owner"];const k=ok.includes(v)?v:"dashboard";
+document.querySelectorAll(".view").forEach(e=>e.classList.toggle("on",e.id==="v-"+k));
+document.querySelectorAll("nav a").forEach(a=>a.classList.toggle("on",a.getAttribute("href")==="#"+k));
+if(k==="dashboard")dash();if(k==="classes")classes();if(k==="friends")friends();if(k==="owner")ownerView();
+if(k==="predictor"){$("#pc").value=sel;$("#pring").innerHTML=ring(0,150,12);sweep($("#pring"));predict()}window.scrollTo(0,0)}
+$("#pc").innerHTML=C.map(c=>`<option value="${c.id}">${c.name} (Period ${c.per})</option>`).join("");
+["pc","sc","wt","tg"].forEach(i=>$("#"+i).addEventListener("input",()=>{if(i==="pc")sel=$("#pc").value;predict()}));
+$("#share").onclick=e=>{const b=e.currentTarget;b.setAttribute("aria-checked",b.getAttribute("aria-checked")==="true"?"false":"true");friends()};
+$("#th").onclick=()=>{const r=document.documentElement,l=r.dataset.theme==="light";r.dataset.theme=l?"dark":"light";$("#th").textContent=l?"Light mode":"Dark mode"};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+const cfg=window.SEMESTER_CONFIG||{};let sb=null,premium=false,shareStats=false;
+try{if(cfg.SUPABASE_URL&&cfg.SUPABASE_ANON_KEY)sb=supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY)}catch(e){}
+const msg=t=>{$("#am").textContent=t};
+function startDemo(){document.body.classList.remove("live");$("#auth").style.display="none";route()}
+async function loadClasses(){const{data,error}=await sb.from("classes").select("*").order("period");C.length=0;
+if(!error)data.forEach(r=>C.push({id:r.id,name:esc(r.name),per:r.period,e:+r.points_earned,t:+r.points_possible,avg:0,n:0,dist:[0,0,0,0,0],oth:[]}));
+if(C.length&&!C.some(c=>c.id===sel))sel=C[0].id;
+$("#pc").innerHTML=C.map(c=>`<option value="${c.id}">${c.name} (Period ${c.per})</option>`).join("");route()}
+async function live(user){const{data:p}=await sb.from("profiles").select("under_13,parent_approved,is_owner,is_premium,share_stats").maybeSingle();
+if(p&&p.under_13&&!p.parent_approved){await sb.auth.signOut();$("#auth").style.display="";msg("Your account is waiting for your parent or guardian to approve it. Try again after they do.");return}
+document.body.classList.add("live");$("#auth").style.display="none";D.length=0;F.length=0;
+if(p&&p.is_owner){$("#own").classList.remove("demo");$("#own").style.cursor="pointer";$("#own").onclick=()=>{location.hash="owner"}}
+premium=!!(p&&p.is_premium);shareStats=!!(p&&p.share_stats);document.body.classList.toggle("free",!premium);
+$("#up").style.display=premium?"none":"";$("#shr").setAttribute("aria-checked",String(shareStats));
+$("#hey").textContent="Hey "+user.email.split("@")[0]+", here’s your day";
+$("#sub").textContent="Add your classes to see your grades and try the what-if calculator.";
+await loadClasses()}
+async function ownerView(){if(!sb)return;const{data:s,error}=await sb.rpc("owner_stats");
+if(error){$("#ost").innerHTML=`<div class="card">Owner only.</div>`;$("#opend").innerHTML="";return}
+$("#ost").innerHTML=[["Students",s.users],["Premium",s.premium],["Waiting",s.pending]].map(x=>`<div class="card"><b>${x[1]}</b><small>${x[0]}</small></div>`).join("");
+const{data:q}=await sb.rpc("owner_pending");
+$("#opend").innerHTML=q&&q.length?q.map(r=>`<div class="row"><span><b>${esc(r.email)}</b><small>Under 13, waiting for approval</small></span><button class="pill" data-id="${r.user_id}" type="button">Approve</button></div>`).join(""):"<p>Nobody is waiting.</p>";
+$("#opend").querySelectorAll("button").forEach(b=>b.onclick=async()=>{await sb.rpc("owner_approve",{p_user:b.dataset.id});ownerView()})}
+$("#gp").onclick=async()=>{const{data:s}=await sb.auth.getSession();const r=await fetch("/api/checkout",{method:"POST",headers:{Authorization:"Bearer "+s.session.access_token}});const j=await r.json().catch(()=>({}));if(j.url)location.href=j.url;else alert(j.error||"Could not start checkout.")};
+$("#shr").onclick=async()=>{shareStats=!shareStats;$("#shr").setAttribute("aria-checked",String(shareStats));await sb.rpc("set_sharing",{p_share:shareStats});C.forEach(c=>{c.got=false});classes()};
+$("#dm").onclick=startDemo;
+$("#u13").onchange=e=>{$("#pbox").style.display=e.target.checked?"block":"none"};
+$("#af").onsubmit=async e=>{e.preventDefault();if(!sb)return msg("Setup needed: add your Supabase URL and key to config.js.");
+const em=$("#em").value.trim(),pw=$("#pw").value,u13=$("#u13").checked,act=e.submitter&&e.submitter.value;
+if(act==="up"){
+const code=$("#scode").value.trim();if(!code)return msg("Enter the school code from your teacher.");
+const{data:sn}=await sb.rpc("school_name",{p_code:code});if(!sn)return msg("That school code was not found.");
+const{data,error}=await sb.auth.signUp({email:em,password:pw,options:{data:{under_13:u13,school_code:code}}});
+if(error)return msg(error.message);
+if(data.session)return live(data.user);
+msg("Check your email to confirm your account, then sign in.")}
+else{const{data,error}=await sb.auth.signInWithPassword({email:em,password:pw});if(error)return msg(error.message);live(data.user)}};
+$("#so").onclick=async()=>{if(sb)await sb.auth.signOut();location.reload()};
+$("#addc").onsubmit=async e=>{e.preventDefault();const f=e.target,row={name:f.cn.value.trim(),period:+f.cp.value,points_earned:+f.ce.value,points_possible:+f.ct.value};
+if(!row.name||!(row.points_possible>0)||row.points_earned<0)return;
+const{error}=await sb.from("classes").insert(row);if(error){alert("Could not save: "+error.message);return}
+f.reset();await loadClasses()};
+if(sb){sb.auth.getSession().then(({data})=>{if(data.session)live(data.session.user)})}else msg("Setup needed: add your Supabase URL and key to config.js. You can still look around with sample data.");
+window.addEventListener("hashchange",route);route();
+</script>
+</body>
+</html>
