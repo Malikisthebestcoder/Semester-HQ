@@ -116,12 +116,11 @@ input[type=text],input[type=email],input[type=password],input[type=number]{width
 <div><label for="ct">Points possible</label><input id="ct" name="ct" type="number" min="1" step="any" required></div></div>
 <button class="btn" style="margin-top:16px">Add class</button></form>
 <form class="card live-only" id="hacf" style="margin-top:14px"><b>Connect Home Access Center</b>
-<p>Your login goes straight to your school’s HAC. It is only saved if you check the box.</p>
+<p>Your login goes straight to your school’s HAC. It is never saved.</p>
 <label for="hu">HAC username</label><input id="hu" type="text" autocomplete="off">
 <label for="hp">HAC password</label><input id="hp" type="password" autocomplete="off">
-<label style="display:flex;gap:10px;align-items:center;font-weight:400"><input id="hr" type="checkbox" style="width:22px;height:22px;flex:none"> Remember my login so I can sync again</label>
 <p id="hm" style="margin:12px 0;color:var(--tx)"></p>
-<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" type="submit">Connect and sync</button><button class="btn alt" id="hs" type="button">Sync saved login</button><button class="btn alt" id="hx" type="button">Forget my login</button></div></form>
+<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" type="submit">Connect and sync</button></div></form>
 <div class="card live-only" id="up" style="margin-top:14px"><b>Go Premium</b><p>Unlock the full grade chart and other periods.</p><button class="btn" id="gp" type="button" style="margin-top:12px">Upgrade</button></div>
 <h2>Due this week</h2>
 <div class="card" id="due"></div>
@@ -253,10 +252,8 @@ $("#shr").onclick=async()=>{shareStats=!shareStats;$("#shr").setAttribute("aria-
 async function hac(body){const{data:s}=await sb.auth.getSession();$("#hm").textContent="Working…";
 try{const r=await fetch("/api/hac",{method:"POST",headers:{Authorization:"Bearer "+s.session.access_token,"Content-Type":"application/json"},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));
 if(!r.ok){$("#hm").textContent=j.error||"Something went wrong.";return}
-$("#hm").textContent=body.action==="forget"?"Saved login deleted.":"Synced "+j.count+" classes.";$("#hp").value="";await loadClasses()}catch(e){$("#hm").textContent="Could not reach the server."}}
-$("#hacf").onsubmit=e=>{e.preventDefault();hac({username:$("#hu").value.trim(),password:$("#hp").value,remember:$("#hr").checked})};
-$("#hs").onclick=()=>hac({});
-$("#hx").onclick=()=>hac({action:"forget"});
+$("#hm").textContent="Synced "+j.count+" classes."+(j.skipped?" "+j.skipped+" had no grades yet.":"");$("#hp").value="";await loadClasses()}catch(e){$("#hm").textContent="Could not reach the server."}}
+$("#hacf").onsubmit=e=>{e.preventDefault();hac({username:$("#hu").value.trim(),password:$("#hp").value})};
 $("#dm").onclick=startDemo;
 $("#u13").onchange=e=>{$("#pbox").style.display=e.target.checked?"block":"none"};
 $("#af").onsubmit=async e=>{e.preventDefault();if(!sb)return msg(why);
