@@ -5,7 +5,7 @@ async function patch(filter, data) {
   const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY: k } = process.env;
   await fetch(`${SUPABASE_URL}/rest/v1/profiles?${filter}`, {
     method: "PATCH",
-    headers: { apikey: k, Authorization: `Bearer ${k}`, "Content-Type": "application/json", Prefer: "return=minimal" },
+    headers: { apikey: k, "Content-Type": "application/json", Prefer: "return=minimal" },
     body: JSON.stringify(data),
   });
 }
