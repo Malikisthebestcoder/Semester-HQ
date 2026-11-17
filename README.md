@@ -24,3 +24,12 @@ Accounts with school code, under-13 parent gate, classes and points, what-if cal
 
 ## Not built yet
 HAC sync, Google Classroom, classmate profiles.
+
+## Home Access Center sync (upgrade3)
+1. Supabase SQL Editor: run `supabase/upgrade3.sql`.
+2. Vercel environment variables, then redeploy:
+   - `HAC_BASE_URL`: your HAC login page address up to (not including) `/HomeAccess`, no trailing slash.
+   - `HAC_ENC_KEY`: 64 hex characters. On a Mac, Terminal: `openssl rand -hex 32`. Keep it secret; if you lose it, saved logins can't be read.
+   - `HAC_DATABASE`: optional, only if your HAC login needs a different database number than 10.
+   - Also needs `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (see Stripe section).
+3. Not guaranteed on the first try: HAC pages differ by district. If it says no classes were found, send the message back for adjusting. If your HAC uses Google sign-in, password sync cannot work.

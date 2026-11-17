@@ -73,7 +73,9 @@ input[type=text],input[type=email],input[type=password],input[type=number]{width
 .live .demo{display:none}
 .free .prem{display:none}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.1/dist/umd/supabase.js"></script>
+<script>window.supabase||document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.1"><\/script>')</script>
+<script>window.supabase||document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"><\/script>')</script>
 <script src="config.js"></script>
 </head>
 <body>
@@ -113,6 +115,13 @@ input[type=text],input[type=email],input[type=password],input[type=number]{width
 <div><label for="ce">Points earned</label><input id="ce" name="ce" type="number" min="0" step="any" required></div>
 <div><label for="ct">Points possible</label><input id="ct" name="ct" type="number" min="1" step="any" required></div></div>
 <button class="btn" style="margin-top:16px">Add class</button></form>
+<form class="card live-only" id="hacf" style="margin-top:14px"><b>Connect Home Access Center</b>
+<p>Your login goes straight to your school’s HAC. It is only saved if you check the box.</p>
+<label for="hu">HAC username</label><input id="hu" type="text" autocomplete="off">
+<label for="hp">HAC password</label><input id="hp" type="password" autocomplete="off">
+<label style="display:flex;gap:10px;align-items:center;font-weight:400"><input id="hr" type="checkbox" style="width:22px;height:22px;flex:none"> Remember my login so I can sync again</label>
+<p id="hm" style="margin:12px 0;color:var(--tx)"></p>
+<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" type="submit">Connect and sync</button><button class="btn alt" id="hs" type="button">Sync saved login</button><button class="btn alt" id="hx" type="button">Forget my login</button></div></form>
 <div class="card live-only" id="up" style="margin-top:14px"><b>Go Premium</b><p>Unlock the full grade chart and other periods.</p><button class="btn" id="gp" type="button" style="margin-top:12px">Upgrade</button></div>
 <h2>Due this week</h2>
 <div class="card" id="due"></div>
@@ -214,7 +223,10 @@ $("#share").onclick=e=>{const b=e.currentTarget;b.setAttribute("aria-checked",b.
 $("#th").onclick=()=>{const r=document.documentElement,l=r.dataset.theme==="light";r.dataset.theme=l?"dark":"light";$("#th").textContent=l?"Light mode":"Dark mode"};
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
 const cfg=window.SEMESTER_CONFIG||{};let sb=null,premium=false,shareStats=false;
-try{if(cfg.SUPABASE_URL&&cfg.SUPABASE_ANON_KEY)sb=supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY)}catch(e){}
+let why="";
+if(!cfg.SUPABASE_URL||!cfg.SUPABASE_ANON_KEY)why="config.js is empty on this site. Add your Supabase URL and publishable key, commit it, and wait for Vercel to redeploy.";
+else if(typeof supabase==="undefined")why="The Supabase library did not load. Check your connection or ad blocker.";
+else{try{sb=supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY)}catch(e){why="Supabase setup error: "+e.message}}
 const msg=t=>{$("#am").textContent=t};
 function startDemo(){document.body.classList.remove("live");$("#auth").style.display="none";route()}
 async function loadClasses(){const{data,error}=await sb.from("classes").select("*").order("period");C.length=0;
@@ -238,9 +250,16 @@ $("#opend").innerHTML=q&&q.length?q.map(r=>`<div class="row"><span><b>${esc(r.em
 $("#opend").querySelectorAll("button").forEach(b=>b.onclick=async()=>{await sb.rpc("owner_approve",{p_user:b.dataset.id});ownerView()})}
 $("#gp").onclick=async()=>{const{data:s}=await sb.auth.getSession();const r=await fetch("/api/checkout",{method:"POST",headers:{Authorization:"Bearer "+s.session.access_token}});const j=await r.json().catch(()=>({}));if(j.url)location.href=j.url;else alert(j.error||"Could not start checkout.")};
 $("#shr").onclick=async()=>{shareStats=!shareStats;$("#shr").setAttribute("aria-checked",String(shareStats));await sb.rpc("set_sharing",{p_share:shareStats});C.forEach(c=>{c.got=false});classes()};
+async function hac(body){const{data:s}=await sb.auth.getSession();$("#hm").textContent="Working…";
+try{const r=await fetch("/api/hac",{method:"POST",headers:{Authorization:"Bearer "+s.session.access_token,"Content-Type":"application/json"},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));
+if(!r.ok){$("#hm").textContent=j.error||"Something went wrong.";return}
+$("#hm").textContent=body.action==="forget"?"Saved login deleted.":"Synced "+j.count+" classes.";$("#hp").value="";await loadClasses()}catch(e){$("#hm").textContent="Could not reach the server."}}
+$("#hacf").onsubmit=e=>{e.preventDefault();hac({username:$("#hu").value.trim(),password:$("#hp").value,remember:$("#hr").checked})};
+$("#hs").onclick=()=>hac({});
+$("#hx").onclick=()=>hac({action:"forget"});
 $("#dm").onclick=startDemo;
 $("#u13").onchange=e=>{$("#pbox").style.display=e.target.checked?"block":"none"};
-$("#af").onsubmit=async e=>{e.preventDefault();if(!sb)return msg("Setup needed: add your Supabase URL and key to config.js.");
+$("#af").onsubmit=async e=>{e.preventDefault();if(!sb)return msg(why);
 const em=$("#em").value.trim(),pw=$("#pw").value,u13=$("#u13").checked,act=e.submitter&&e.submitter.value;
 if(act==="up"){
 const code=$("#scode").value.trim();if(!code)return msg("Enter the school code from your teacher.");
@@ -255,7 +274,7 @@ $("#addc").onsubmit=async e=>{e.preventDefault();const f=e.target,row={name:f.cn
 if(!row.name||!(row.points_possible>0)||row.points_earned<0)return;
 const{error}=await sb.from("classes").insert(row);if(error){alert("Could not save: "+error.message);return}
 f.reset();await loadClasses()};
-if(sb){sb.auth.getSession().then(({data})=>{if(data.session)live(data.session.user)})}else msg("Setup needed: add your Supabase URL and key to config.js. You can still look around with sample data.");
+if(sb){sb.auth.getSession().then(({data})=>{if(data.session)live(data.session.user)})}else msg(why+" You can still look around with sample data.");
 window.addEventListener("hashchange",route);route();
 </script>
 </body>
