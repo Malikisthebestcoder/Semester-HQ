@@ -159,7 +159,7 @@ input[type=text],input[type=email],input[type=password],input[type=number]{width
 <section class="view" id="v-owner"><h1>Owner</h1><p>Counts only. You never see students’ grades here.</p><div class="stats" id="ost"></div><h2>Waiting for parent approval</h2><div class="card" id="opend"></div></section>
 <section class="view" id="v-friends">
 <h1>Classmates</h1>
-<p>Kids at Lincoln Middle who are in your classes.</p>
+<p>Kids at your school who are in your classes.</p>
 <div class="card" style="margin-top:18px">
 <div class="row"><div><b>Share my grades with friends</b><small>Off by default. You can turn it off anytime.</small></div><button class="sw" id="share" role="switch" aria-checked="false" aria-label="Share my grades with friends" type="button"></button></div>
 <div class="row"><div><b>New friends need parent approval</b><small>Required for students under 13.</small></div><button class="sw" role="switch" aria-checked="true" aria-label="New friends need parent approval, required" type="button" disabled></button></div>
@@ -226,7 +226,11 @@ const cfg=window.SEMESTER_CONFIG||{};let sb=null,premium=false,shareStats=false;
 let why="";
 if(!cfg.SUPABASE_URL||!cfg.SUPABASE_ANON_KEY)why="config.js is empty on this site. Add your Supabase URL and publishable key, commit it, and wait for Vercel to redeploy.";
 else if(typeof supabase==="undefined")why="The Supabase library did not load. Check your connection or ad blocker.";
-else{try{sb=supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY)}catch(e){why="Supabase setup error: "+e.message}}
+else{let u=String(cfg.SUPABASE_URL).trim().replace(/^["'\s]+|["'\s]+$/g,"").replace(/\/+$/,"");const k=String(cfg.SUPABASE_ANON_KEY).trim();
+if(/^(sb_|eyJ)/.test(u)||/^https?:/i.test(k))why="The Supabase URL and key look swapped in config.js. The URL goes first and starts with https://.";
+else if(/^postgres/i.test(u))why="config.js has a database connection string. Use the Project URL instead (https://xxxx.supabase.co).";
+else{if(!/^https?:\/\//i.test(u))u="https://"+u;
+try{sb=supabase.createClient(u,k)}catch(e){why="Supabase setup error: "+e.message+" (the URL in config.js starts with: "+u.slice(0,30)+")"}}}
 const msg=t=>{$("#am").textContent=t};
 function startDemo(){document.body.classList.remove("live");$("#auth").style.display="none";route()}
 async function loadClasses(){const{data,error}=await sb.from("classes").select("*").order("period");C.length=0;
