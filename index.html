@@ -81,14 +81,15 @@ input[type=text],input[type=email],input[type=password],input[type=number]{width
 <body>
 <div class="bg"></div>
 <div class="auth" id="auth"><form class="card" id="af">
-<h1 style="margin-top:0">Semester HQ</h1><p>Sign in or make an account.</p>
-<label for="em">Email</label><input id="em" type="email" autocomplete="email" required>
-<label for="pw">Password (8+ characters)</label><input id="pw" type="password" minlength="8" autocomplete="current-password" required>
-<label for="scode">School code (new accounts)</label><input id="scode" type="text" autocomplete="off">
+<h1 style="margin-top:0">Semester HQ</h1><p>Sign in with your Home Access Center login.</p>
+<label for="em">HAC username</label><input id="em" type="text" autocomplete="username" required>
+<label for="pw">HAC password</label><input id="pw" type="password" autocomplete="current-password" required>
+<label for="scode">School code (first time only)</label><input id="scode" type="text" autocomplete="off">
 <label style="display:flex;gap:10px;align-items:center;font-weight:400"><input id="u13" type="checkbox" style="width:22px;height:22px;flex:none"> I am under 13</label>
-<p id="pbox" style="display:none">A parent or guardian has to give permission first. Your teacher will approve your account.</p>
+<p id="pbox" style="display:none">A parent or guardian has to give permission first. Your account will be approved after that.</p>
 <p id="am" style="margin:14px 0;color:var(--tx)"></p>
-<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" value="in">Sign in</button><button class="btn alt" value="up">Create account</button></div>
+<button class="btn">Sign in with HAC</button>
+<p style="margin-top:12px;font-size:13px">Your HAC password is only used to check it with your school. It is never saved.</p>
 <button class="pill" id="dm" type="button" style="margin-top:16px">Look around with sample data</button>
 </form></div>
 <svg style="position:absolute;width:0;height:0" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b7cff"/><stop offset="1" stop-color="#38e1c6"/></linearGradient></defs></svg>
@@ -238,7 +239,7 @@ document.body.classList.add("live");$("#auth").style.display="none";D.length=0;F
 if(p&&p.is_owner){$("#own").classList.remove("demo");$("#own").style.cursor="pointer";$("#own").onclick=()=>{location.hash="owner"}}
 premium=!!(p&&p.is_premium);shareStats=!!(p&&p.share_stats);document.body.classList.toggle("free",!premium);
 $("#up").style.display=premium?"none":"";$("#shr").setAttribute("aria-checked",String(shareStats));
-$("#hey").textContent="Hey "+user.email.split("@")[0]+", here’s your day";
+$("#hey").textContent="Hey, here’s your day";
 $("#sub").textContent="Add your classes to see your grades and try the what-if calculator.";
 await loadClasses()}
 async function ownerView(){if(!sb)return;const{data:s,error}=await sb.rpc("owner_stats");
@@ -256,16 +257,11 @@ $("#hm").textContent="Synced "+j.count+" classes."+(j.skipped?" "+j.skipped+" ha
 $("#hacf").onsubmit=e=>{e.preventDefault();hac({username:$("#hu").value.trim(),password:$("#hp").value})};
 $("#dm").onclick=startDemo;
 $("#u13").onchange=e=>{$("#pbox").style.display=e.target.checked?"block":"none"};
-$("#af").onsubmit=async e=>{e.preventDefault();if(!sb)return msg(why);
-const em=$("#em").value.trim(),pw=$("#pw").value,u13=$("#u13").checked,act=e.submitter&&e.submitter.value;
-if(act==="up"){
-const code=$("#scode").value.trim();if(!code)return msg("Enter the school code from your teacher.");
-const{data:sn}=await sb.rpc("school_name",{p_code:code});if(!sn)return msg("That school code was not found.");
-const{data,error}=await sb.auth.signUp({email:em,password:pw,options:{data:{under_13:u13,school_code:code}}});
-if(error)return msg(error.message);
-if(data.session)return live(data.user);
-msg("Check your email to confirm your account, then sign in.")}
-else{const{data,error}=await sb.auth.signInWithPassword({email:em,password:pw});if(error)return msg(error.message);live(data.user)}};
+$("#af").onsubmit=async e=>{e.preventDefault();if(!sb)return msg(why);msg("Checking with HAC…");
+try{const r=await fetch("/api/hac-login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:$("#em").value.trim(),password:$("#pw").value,school_code:$("#scode").value.trim(),under_13:$("#u13").checked})});
+const j=await r.json().catch(()=>({}));if(!r.ok)return msg(j.error||"Could not sign in.");
+const{data,error}=await sb.auth.verifyOtp({token_hash:j.token_hash,type:j.type});if(error)return msg(error.message);
+$("#pw").value="";live(data.user)}catch(err){msg("Could not reach the server.")}};
 $("#so").onclick=async()=>{if(sb)await sb.auth.signOut();location.reload()};
 $("#addc").onsubmit=async e=>{e.preventDefault();const f=e.target,row={name:f.cn.value.trim(),period:+f.cp.value,points_earned:+f.ce.value,points_possible:+f.ct.value};
 if(!row.name||!(row.points_possible>0)||row.points_earned<0)return;

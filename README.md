@@ -29,3 +29,10 @@ HAC sync, Google Classroom, classmate profiles.
 1. Supabase SQL Editor: run `supabase/upgrade3.sql`.
 2. Vercel environment variables, then redeploy: `HAC_BASE_URL` (your HAC address with no trailing slash, e.g. https://esp-has-1.psd202.org), plus `SUPABASE_URL`, `SUPABASE_ANON_KEY` (publishable key) and `SUPABASE_SERVICE_ROLE_KEY` (secret key). `HAC_DATABASE` is optional.
 3. The HAC password is used once to log in and is never stored. If your HAC uses Google sign-in, password sync cannot work.
+
+## Sign in with HAC only (upgrade4)
+1. Upload `package.json` (top level) and `api/hac-login.js`; replace `api/hac.js` and `index.html`. Run `supabase/upgrade4.sql`.
+2. Vercel env var `HAC_ID_SECRET`: 64 random hex characters (Terminal: `openssl rand -hex 32`). Keep a copy; if it changes, students can't be matched to their accounts. Needs `HAC_BASE_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` too. Redeploy.
+3. Sign in once with your HAC login and the school code, then make yourself owner:
+   `update public.profiles set is_owner = true, is_premium = true where hac_username = 'your hac username in lowercase';`
+4. Under-13 students show up in the Owner panel by HAC username; click Approve after you have permission.

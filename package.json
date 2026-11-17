@@ -1,0 +1,5 @@
+{
+  "name": "semester-hq",
+  "private": true,
+  "dependencies": { "@supabase/supabase-js": "2.105.1" }
+}
