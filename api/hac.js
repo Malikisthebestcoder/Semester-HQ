@@ -63,3 +63,7 @@ module.exports = async (req, res) => {
   await rest("classes", { method: "POST", body: JSON.stringify(result.classes.map((c) => ({ user_id: user.id, name: c.name, period: c.period, points_earned: c.earned, points_possible: c.possible, source: "hac" }))) });
   res.status(200).json({ ok: true, count: result.classes.length, skipped: result.skipped });
 };
+
+// Shared with api/hac-login.js
+module.exports.fetchGrades = fetchGrades;
+module.exports.MSG = MSG;
