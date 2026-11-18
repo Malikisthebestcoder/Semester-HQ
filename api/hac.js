@@ -4,7 +4,7 @@ const { SUPABASE_URL: SB, SUPABASE_ANON_KEY: ANON, SUPABASE_SERVICE_ROLE_KEY: SV
 const rest = (path, opt = {}) => fetch(`${SB}/rest/v1/${path}`, { ...opt, headers: { apikey: SVC, "Content-Type": "application/json", Prefer: "return=minimal", ...(opt.headers || {}) } });
 
 // Reads the Classwork page by its visible text, not by guessed CSS class names.
-// Each class starts with a line like "BN8500 - 2 8TH GRADE BAND" and shows "Classwork Average 100.00%".
+// Each class title looks like "BN8500 - 2 8TH GRADE BAND" and shows "Classwork Average 100.00%".
 // Assignment rows read: Date Due | Date Assigned | Assignment | Category | Score | Total Points.
 function pageLines(html) {
   let t = html.replace(/<script[\s\S]*?<\/script>/gi, "").replace(/<style[\s\S]*?<\/style>/gi, "");
@@ -15,7 +15,7 @@ function pageLines(html) {
 
 function parseResult(html) {
   const blocks = []; let cur = null;
-  const header = /^([A-Z]{1,4}\d{3,6})\s*-\s*(\d{1,2})\s+([^|]+?)(?:\s+Classwork Average.*)?$/i;
+  const header = /([A-Z]{1,4}\d{3,6})\s*-\s*(\d{1,2})\s+([^|]+?)(?:\s+Classwork Average.*)?$/i;
   for (const s of pageLines(html)) {
     const h = s.match(header);
     if (h) { cur = { name: h[3].trim(), period: +h[2], avg: null, earned: 0, possible: 0, rows: 0 }; blocks.push(cur); }
@@ -32,7 +32,11 @@ function parseResult(html) {
     const useAvg = b.avg !== null;
     return { name: b.name.slice(0, 60), period: b.period, earned: useAvg ? b.avg : b.earned, possible: useAvg ? 100 : b.possible };
   });
-  return { classes, found: blocks.length, skipped: blocks.length - classes.length };
+  const title = ((html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || "").replace(/\s+/g, " ").trim();
+  return {
+    classes, found: blocks.length, skipped: blocks.length - classes.length,
+    title, averages: (html.match(/Classwork Average/gi) || []).length, loginForm: /LogOn/i.test(html),
+  };
 }
 
 async function fetchGrades(user, pass) {
@@ -69,7 +73,9 @@ module.exports = async (req, res) => {
   if (!b.username || !b.password) return res.status(400).json({ error: "Enter your HAC username and password." });
   let result;
   try { result = await fetchGrades(b.username, b.password); } catch (e) { return res.status(400).json({ error: MSG[e.message] || "Could not reach HAC." }); }
-  if (!result.classes.length) return res.status(422).json({ error: "Signed in, but I found " + result.found + " class sections with no graded work to show. Tell me and I will adjust the reader." });
+  if (!result.classes.length) {
+    return res.status(422).json({ error: `Signed in, but I found ${result.found} class titles with no graded work. Page title: "${result.title}". "Classwork Average" appears ${result.averages} times. Login page: ${result.loginForm ? "yes" : "no"}. Send me this message and the page source snippet.` });
+  }
   await rest(`classes?user_id=eq.${user.id}&source=eq.hac`, { method: "DELETE" });
   await rest("classes", { method: "POST", body: JSON.stringify(result.classes.map((c) => ({ user_id: user.id, name: c.name, period: c.period, points_earned: c.earned, points_possible: c.possible, source: "hac" }))) });
   res.status(200).json({ ok: true, count: result.classes.length, skipped: result.skipped });
