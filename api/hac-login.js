@@ -7,7 +7,8 @@ const { SUPABASE_URL: SB, SUPABASE_SERVICE_ROLE_KEY: SVC, HAC_BASE_URL, HAC_ID_S
 
 module.exports = async (req, res) => {
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
-  if (!HAC_BASE_URL || !HAC_ID_SECRET || !SB || !SVC) return res.status(500).json({ error: "HAC sign-in is not set up yet (check the Vercel environment variables)." });
+  const missing = [["HAC_BASE_URL", HAC_BASE_URL], ["HAC_ID_SECRET", HAC_ID_SECRET], ["SUPABASE_URL", SB], ["SUPABASE_SERVICE_ROLE_KEY", SVC]].filter(([, v]) => !v).map(([k]) => k);
+  if (missing.length) return res.status(500).json({ error: `Missing in Vercel: ${missing.join(", ")}. Add them (Settings, Environment Variables, Production) and redeploy.` });
   const b = typeof req.body === "string" ? JSON.parse(req.body || "{}") : req.body || {};
   const username = String(b.username || "").trim(), password = String(b.password || "");
   if (!username || !password) return res.status(400).json({ error: "Enter your HAC username and password." });
