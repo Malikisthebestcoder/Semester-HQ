@@ -2,26 +2,37 @@
 // The HAC password is used once to log in. It is never stored and never logged.
 const { SUPABASE_URL: SB, SUPABASE_ANON_KEY: ANON, SUPABASE_SERVICE_ROLE_KEY: SVC, HAC_BASE_URL, HAC_DATABASE } = process.env;
 const rest = (path, opt = {}) => fetch(`${SB}/rest/v1/${path}`, { ...opt, headers: { apikey: SVC, "Content-Type": "application/json", Prefer: "return=minimal", ...(opt.headers || {}) } });
-const strip = (s) => s.replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
 
-// Reads the Classwork page: one block per class, a header like "BN8500 - 2 8TH GRADE BAND",
-// "Classwork Average 100.00%", and a table of assignments (Date Due, Date Assigned, Assignment, Category, Score, Total Points).
-function parse(html) {
-  const out = []; let skipped = 0;
-  for (const b of html.split(/<div[^>]*class="[^"]*AssignmentClass[^"]*"[^>]*>/).slice(1)) {
-    const h = b.slice(0, 2500).match(/\b([A-Z]{2,4}\d{3,5})\s*-\s*(\d{1,2})\s+([^<]+?)\s*</);
-    if (!h) continue;
-    const avg = parseFloat((b.match(/Classwork Average\s*(?:<[^>]*>\s*)*([0-9]{1,3}(?:\.[0-9]+)?)\s*%/i) || [])[1]);
-    let e = 0, p = 0;
-    for (const tr of b.match(/<tr[\s\S]*?<\/tr>/g) || []) {
-      const c = [...tr.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map((m) => strip(m[1]));
-      if (c.length >= 6 && /^\d/.test(c[4]) && /^\d/.test(c[5])) { e += parseFloat(c[4]); p += parseFloat(c[5]); }
+// Reads the Classwork page by its visible text, not by guessed CSS class names.
+// Each class starts with a line like "BN8500 - 2 8TH GRADE BAND" and shows "Classwork Average 100.00%".
+// Assignment rows read: Date Due | Date Assigned | Assignment | Category | Score | Total Points.
+function pageLines(html) {
+  let t = html.replace(/<script[\s\S]*?<\/script>/gi, "").replace(/<style[\s\S]*?<\/style>/gi, "");
+  t = t.replace(/<\/t[dh]>/gi, " | ").replace(/<\/tr>|<\/div>|<\/p>|<\/h\d>|<\/li>|<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, " ");
+  t = t.replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&").replace(/&quot;/gi, '"').replace(/&#39;|&#x27;/gi, "'");
+  return t.split("\n").map((s) => s.replace(/\s+/g, " ").trim()).filter(Boolean);
+}
+
+function parseResult(html) {
+  const blocks = []; let cur = null;
+  const header = /^([A-Z]{1,4}\d{3,6})\s*-\s*(\d{1,2})\s+([^|]+?)(?:\s+Classwork Average.*)?$/i;
+  for (const s of pageLines(html)) {
+    const h = s.match(header);
+    if (h) { cur = { name: h[3].trim(), period: +h[2], avg: null, earned: 0, possible: 0, rows: 0 }; blocks.push(cur); }
+    if (!cur) continue;
+    const a = s.match(/Classwork Average\s*([0-9]{1,3}(?:\.[0-9]+)?)\s*%/i);
+    if (a) cur.avg = parseFloat(a[1]);
+    const c = s.split("|").map((x) => x.trim());
+    if (c.length >= 6 && /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(c[0]) && /^\d+(\.\d+)?$/.test(c[4]) && /^\d+(\.\d+)?$/.test(c[5])) {
+      cur.earned += +c[4]; cur.possible += +c[5]; cur.rows++;
     }
-    if (!(p > 0)) { skipped++; continue; }
-    const useAvg = Number.isFinite(avg) && avg > 0;
-    out.push({ name: strip(h[3]).slice(0, 60), period: +h[2], earned: useAvg ? avg : e, possible: useAvg ? 100 : p });
   }
-  return { classes: out, skipped };
+  // Only classes with graded work. Use HAC's own average when shown, otherwise add up the scores.
+  const classes = blocks.filter((b) => b.rows > 0).map((b) => {
+    const useAvg = b.avg !== null;
+    return { name: b.name.slice(0, 60), period: b.period, earned: useAvg ? b.avg : b.earned, possible: useAvg ? 100 : b.possible };
+  });
+  return { classes, found: blocks.length, skipped: blocks.length - classes.length };
 }
 
 async function fetchGrades(user, pass) {
@@ -41,7 +52,7 @@ async function fetchGrades(user, pass) {
   if (r.status !== 302 || /LogOn/i.test(r.headers.get("location") || "")) throw new Error("bad_login");
   r = await get(`${base}/HomeAccess/Classes/Classwork`);
   if (r.status !== 200) throw new Error("grades_page");
-  return parse(await r.text());
+  return parseResult(await r.text());
 }
 
 const MSG = { login_page: "Could not read your school's HAC login page. Check HAC_BASE_URL in Vercel, or your school may use Google sign-in for HAC.", bad_login: "HAC did not accept that username and password.", grades_page: "Signed in, but the Classwork page could not be opened." };
@@ -58,7 +69,7 @@ module.exports = async (req, res) => {
   if (!b.username || !b.password) return res.status(400).json({ error: "Enter your HAC username and password." });
   let result;
   try { result = await fetchGrades(b.username, b.password); } catch (e) { return res.status(400).json({ error: MSG[e.message] || "Could not reach HAC." }); }
-  if (!result.classes.length) return res.status(422).json({ error: "Signed in, but no graded classes were found. The page layout may differ, so the reader needs adjusting." });
+  if (!result.classes.length) return res.status(422).json({ error: "Signed in, but I found " + result.found + " class sections with no graded work to show. Tell me and I will adjust the reader." });
   await rest(`classes?user_id=eq.${user.id}&source=eq.hac`, { method: "DELETE" });
   await rest("classes", { method: "POST", body: JSON.stringify(result.classes.map((c) => ({ user_id: user.id, name: c.name, period: c.period, points_earned: c.earned, points_possible: c.possible, source: "hac" }))) });
   res.status(200).json({ ok: true, count: result.classes.length, skipped: result.skipped });
